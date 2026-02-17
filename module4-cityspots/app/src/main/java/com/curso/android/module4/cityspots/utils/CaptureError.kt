@@ -9,6 +9,8 @@ sealed class CaptureError {
     data object CaptureFailed : CaptureError()
     //File I/O error (storage full or permissions)
     data object FileIOError : CaptureError()
+    //Invalid Camera Error
+    data object InvalidCamera : CaptureError()
     //Error desconocido
     data class Unknown(val exception: ImageCaptureException) : CaptureError()
 }

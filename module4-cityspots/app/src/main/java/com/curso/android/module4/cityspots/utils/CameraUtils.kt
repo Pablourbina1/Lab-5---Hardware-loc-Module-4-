@@ -83,7 +83,7 @@ class CameraUtils(private val context: Context) {
      * @return URI del archivo guardado
      * @throws ImageCaptureException si falla la captura
      */
-    suspend fun capturePhoto(imageCapture: ImageCapture): Uri {
+    suspend fun capturePhoto(imageCapture: ImageCapture): Result<Uri> {
         return suspendCancellableCoroutine { continuation ->
             // Crear archivo de destino
             val photoFile = createImageFile()
@@ -101,14 +101,39 @@ class CameraUtils(private val context: Context) {
                     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                         // Éxito: retornar URI del archivo
                         val savedUri = Uri.fromFile(photoFile)
-                        continuation.resume(savedUri)
+                        continuation.resume(Result.success(savedUri))
                     }
 
                     override fun onError(exception: ImageCaptureException) {
                         // Error: propagar excepción
                         // Limpiar archivo si se creó pero falló la escritura
                         photoFile.delete()
-                        continuation.resumeWithException(exception)
+
+                        val captureError = if (
+                            exception.imageCaptureError == ImageCapture.ERROR_CAMERA_CLOSED
+                            ) {
+                            CaptureError.CameraClosed
+                        } else if (
+                            exception.imageCaptureError == ImageCapture.ERROR_CAPTURE_FAILED
+                        ) {
+                            CaptureError.CaptureFailed
+                        } else if (
+                            exception.imageCaptureError == ImageCapture.ERROR_FILE_IO
+                        ) {
+                            CaptureError.FileIOError
+                        } else if (
+                            exception.imageCaptureError == ImageCapture.ERROR_INVALID_CAMERA
+                        ) {
+                            CaptureError.InvalidCamera
+                        } else {
+                            CaptureError.Unknown(exception)
+                        }
+
+                        continuation.resume(
+                            Result.failure(
+                                CaptureErrorException(captureError)
+                            )
+                        )
                     }
                 }
             )
@@ -123,6 +148,12 @@ class CameraUtils(private val context: Context) {
             }
         }
     }
+
+    //Clase para agarrar los errores de capture error y resumir con continuation
+    class CaptureErrorException(
+        val error: CaptureError
+    ) : Exception()
+
 
     /**
      * Elimina un archivo de imagen dado su URI
