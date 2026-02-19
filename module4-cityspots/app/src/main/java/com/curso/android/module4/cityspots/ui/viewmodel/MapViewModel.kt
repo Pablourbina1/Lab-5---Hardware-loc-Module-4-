@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.curso.android.module4.cityspots.data.entity.SpotEntity
 import com.curso.android.module4.cityspots.repository.CreateSpotResult
 import com.curso.android.module4.cityspots.repository.SpotRepository
+import com.curso.android.module4.cityspots.utils.CaptureError
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -172,6 +173,30 @@ class MapViewModel(
 
                     is CreateSpotResult.InvalidCoordinates -> {
                         _errorMessage.value = result.message
+                        _captureResult.value = false
+                    }
+
+                    is CreateSpotResult.PhotoCaptureFailed -> {
+
+                        val message = when(result.error) {
+
+                            CaptureError.CameraClosed ->
+                                "La cámara se cerró inesperadamente."
+
+                            CaptureError.CaptureFailed ->
+                                "La captura de la foto falló."
+
+                            CaptureError.FileIOError ->
+                                "Error al guardar la imagen. Verifica el almacenamiento."
+
+                            CaptureError.InvalidCamera ->
+                                "Configuración de cámara inválida."
+
+                            is CaptureError.Unknown ->
+                                "Error desconocido al capturar la foto."
+                        }
+
+                        _errorMessage.value = message
                         _captureResult.value = false
                     }
                 }

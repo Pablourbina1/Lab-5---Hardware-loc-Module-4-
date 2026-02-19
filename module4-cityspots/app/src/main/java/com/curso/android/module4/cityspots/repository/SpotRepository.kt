@@ -3,9 +3,11 @@ package com.curso.android.module4.cityspots.repository
 import android.location.Location
 import android.net.Uri
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import com.curso.android.module4.cityspots.data.dao.SpotDao
 import com.curso.android.module4.cityspots.data.entity.SpotEntity
 import com.curso.android.module4.cityspots.utils.CameraUtils
+import com.curso.android.module4.cityspots.utils.CaptureError
 import com.curso.android.module4.cityspots.utils.CoordinateValidator
 import com.curso.android.module4.cityspots.utils.LocationUtils
 import kotlinx.coroutines.flow.Flow
@@ -115,7 +117,7 @@ class SpotRepository(
      * @param imageCapture Use case de ImageCapture configurado en la UI
      * @return URI del archivo de imagen guardado
      */
-    suspend fun capturePhoto(imageCapture: ImageCapture): Uri {
+    suspend fun capturePhoto(imageCapture: ImageCapture): Result<Uri> {
         return cameraUtils.capturePhoto(imageCapture)
     }
 
@@ -172,7 +174,32 @@ class SpotRepository(
      */
     suspend fun createSpot(imageCapture: ImageCapture): CreateSpotResult {
         // 1. Capturar la foto
-        val photoUri = capturePhoto(imageCapture)
+        val photoResult = capturePhoto(imageCapture)
+
+        if (photoResult.isFailure) {
+
+            val exception = photoResult.exceptionOrNull()
+
+            if (exception is CameraUtils.CaptureErrorException) {
+
+                return CreateSpotResult.PhotoCaptureFailed(exception.error)
+
+            } else {
+
+                return CreateSpotResult.PhotoCaptureFailed(
+                    CaptureError.Unknown(
+                        ImageCaptureException(
+                            ImageCapture.ERROR_UNKNOWN,
+                            "Unknown capture error",
+                            exception
+                        )
+                    )
+                )
+            }
+        }
+
+        val photoUri = photoResult.getOrThrow()
+
 
         // 2. Obtener ubicación actual
         val location = getCurrentLocation()
@@ -228,4 +255,6 @@ sealed class CreateSpotResult {
     data class Success(val spot: SpotEntity) : CreateSpotResult()
     data object NoLocation : CreateSpotResult()
     data class InvalidCoordinates(val message: String) : CreateSpotResult()
+    //Error al tomar foto
+    data class PhotoCaptureFailed(val error: CaptureError) : CreateSpotResult()
 }
