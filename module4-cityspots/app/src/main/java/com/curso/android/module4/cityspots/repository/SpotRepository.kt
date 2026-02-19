@@ -2,6 +2,7 @@ package com.curso.android.module4.cityspots.repository
 
 import android.location.Location
 import android.net.Uri
+import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import com.curso.android.module4.cityspots.data.dao.SpotDao
@@ -11,6 +12,7 @@ import com.curso.android.module4.cityspots.utils.CaptureError
 import com.curso.android.module4.cityspots.utils.CoordinateValidator
 import com.curso.android.module4.cityspots.utils.LocationUtils
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 /**
  * =============================================================================
@@ -241,6 +243,22 @@ class SpotRepository(
         // Retornar el spot con el ID generado
         return CreateSpotResult.Success(spot.copy(id = id))
     }
+
+    /** Eliminar un spot */
+
+    suspend fun deleteSpot(spot : SpotEntity){
+        try {
+            val file = File(spot.imageUri)
+            if (file.exists()) {
+                file.delete()
+            }
+
+            spotDao.deleteSpot(spot.id)
+
+        } catch (e: Exception) {
+            Log.e("SpotRepository", "Error eliminando el spot", e)
+        }
+    }
 }
 
 /**
@@ -258,3 +276,6 @@ sealed class CreateSpotResult {
     //Error al tomar foto
     data class PhotoCaptureFailed(val error: CaptureError) : CreateSpotResult()
 }
+
+
+
