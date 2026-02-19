@@ -101,6 +101,58 @@ class CameraUtils(private val context: Context) {
                     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                         // Éxito: retornar URI del archivo
                         val savedUri = Uri.fromFile(photoFile)
+
+                        // Error de IO
+                        /*
+                        continuation.resume(
+                            Result.failure(
+                                CaptureErrorException(CaptureError.FileIOError)
+                            )
+                        )
+                         */
+
+                        //Error, se cerro la camara inesperadamente
+                        /*
+                        continuation.resume(
+                            Result.failure(
+                                CaptureErrorException(CaptureError.CameraClosed)
+                            )
+                        )
+                         */
+
+                        //Error, la captura de la foto fallo
+                        /*
+                        continuation.resume(
+                            Result.failure(
+                                CaptureErrorException(CaptureError.CaptureFailed)
+                            )
+                        )
+                         */
+
+                        //Error, camara invalida
+                        /*
+                        continuation.resume(
+                            Result.failure(
+                                CaptureErrorException(CaptureError.InvalidCamera)
+                            )
+                        )
+                         */
+
+                        //Error desconocido
+                        /*
+                        continuation.resume(
+                            Result.failure(
+                                CaptureErrorException(CaptureError.Unknown(ImageCaptureException(
+                                    ImageCapture.ERROR_UNKNOWN,
+                                    "Test unknown error",
+                                    null
+                                )))
+                            )
+                        )
+
+                         */
+
+                        // Continuation normal cuando hay exito
                         continuation.resume(Result.success(savedUri))
                     }
 
