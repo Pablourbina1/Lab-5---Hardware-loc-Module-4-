@@ -223,5 +223,11 @@ class MapViewModel(
         _errorMessage.value = null
     }
 
+    /** Eliminar spot */
+    fun deleteSpot(spot : SpotEntity){
+        viewModelScope.launch {
+            repository.deleteSpot(spot)
+        }
+    }
 
 }
