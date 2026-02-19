@@ -86,6 +86,9 @@ interface SpotDao {
     suspend fun getSpotCount(): Int
 
 
+    // Eliminar el spot indicado de la base de datos
+    @Query("DELETE FROM spots WHERE id = :id")
+    suspend fun deleteSpot(id: Long)
 
 
 }
