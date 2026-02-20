@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.core.net.toUri
 import com.curso.android.module4.cityspots.data.dao.SpotDao
 import com.curso.android.module4.cityspots.data.entity.SpotEntity
 import com.curso.android.module4.cityspots.utils.CameraUtils
@@ -248,11 +249,9 @@ class SpotRepository(
 
     suspend fun deleteSpot(spot : SpotEntity){
         try {
-            val file = File(spot.imageUri)
-            if (file.exists()) {
-                file.delete()
-            }
+            val imagepath = spot.imageUri.toUri()
 
+            cameraUtils.deleteImage(imagepath)
             spotDao.deleteSpot(spot.id)
 
         } catch (e: Exception) {
